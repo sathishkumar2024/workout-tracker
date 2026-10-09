@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Upper/Lower Gym Split</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: day tabs colored like Olympic plates → exercise list with muscles, cues, video link */
+:root{
+  --bg:#f3f4f2; --surface:#ffffff; --fg:#1c2024; --muted:#5d656c; --line:#dcdfdc;
+  --chip:#eceeec; --accent:#1c2024;
+  --plate-red:#c8372d; --plate-blue:#2161b0; --plate-yellow:#c99a06; --plate-green:#2f8a4a; --plate-gray:#6b7178;
+  --done:#2f8a4a;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141719; --surface:#1d2124; --fg:#eceeec; --muted:#9aa2a8; --line:#2e3438;
+  --chip:#272c30; --accent:#eceeec;
+  --plate-red:#ec6a5f; --plate-blue:#6aa2e8; --plate-yellow:#e8bf3a; --plate-green:#5cc07a; --plate-gray:#9aa2a8;
+  --done:#5cc07a; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#141719; --surface:#1d2124; --fg:#eceeec; --muted:#9aa2a8; --line:#2e3438;
+  --chip:#272c30; --accent:#eceeec;
+  --plate-red:#ec6a5f; --plate-blue:#6aa2e8; --plate-yellow:#e8bf3a; --plate-green:#5cc07a; --plate-gray:#9aa2a8;
+  --done:#5cc07a; color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:20px}
+header h1{font-family:var(--display);font-weight:800;font-size:clamp(2rem,7vw,2.8rem);line-height:1;margin:0;text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+header p{margin:8px 0 0;color:var(--muted);max-width:60ch}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.wk{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 4px;text-align:center;font-family:var(--display);cursor:pointer;color:var(--fg);font-size:1rem;display:grid;gap:2px}
+.wk small{font-family:var(--body);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.wk b{font-size:1.15rem;font-weight:700;letter-spacing:.02em}
+.wk[aria-selected="true"]{border-color:var(--c);box-shadow:inset 0 -4px 0 var(--c)}
+.wk.rest{cursor:default;opacity:.6}
+.wk:focus-visible,.how:focus-visible,.check:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dayhead{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.plate{width:56px;height:56px;border-radius:50%;background:var(--c);display:grid;place-items:center;flex:none;position:relative}
+.plate::after{content:"";width:14px;height:14px;border-radius:50%;background:var(--bg)}
+.dayhead h2{font-family:var(--display);font-size:1.9rem;margin:0;line-height:1;text-transform:uppercase}
+.dayhead p{margin:4px 0 0;color:var(--muted)}
+.dayhead > div{min-width:0;flex:1}
+.progress{font-variant-numeric:tabular-nums;font-weight:600;color:var(--muted);font-size:.9rem}
+.list{display:grid;gap:12px;list-style:none;margin:0;padding:0}
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:10px}
+.ex.is-done{border-color:var(--done)}
+.ex-top{display:flex;gap:12px;align-items:flex-start}
+.ex-title{flex:1;min-width:0}
+.ex-title h3{margin:0;font-size:1.1rem;font-weight:700;line-height:1.25}
+.meta{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem;margin-top:2px}
+.meta strong{color:var(--fg);font-weight:700}
+.check{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:transparent;cursor:pointer;display:grid;place-items:center;color:transparent;font-weight:700}
+.ex.is-done .check{background:var(--done);border-color:var(--done);color:var(--surface)}
+.muscles{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--chip);border-radius:999px;padding:2px 10px;font-size:.82rem;font-weight:600}
+.chip.primary{background:var(--c);color:var(--surface)}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin-bottom:4px}
+.cues{margin:0;padding-left:18px;display:grid;gap:2px}
+.how{justify-self:start;display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--fg);font-weight:600;font-size:.92rem;border:1px solid var(--line);border-radius:8px;padding:6px 12px}
+.how:hover{border-color:var(--c)}
+.how svg{width:16px;height:16px;fill:var(--c)}
+.reset{background:none;border:none;color:var(--muted);text-decoration:underline;cursor:pointer;font:inherit;font-size:.85rem;justify-self:start;padding:0}
+.rules{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.rules h2{font-family:var(--display);text-transform:uppercase;font-size:1.4rem;margin:0 0 8px}
+.rules ul{margin:0;padding-left:18px;display:grid;gap:6px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.85rem;color:var(--muted);align-items:center}
+.legend .chip{font-size:.75rem}
+@media (max-width:420px){.wk b{font-size:1rem}.wk small{font-size:.62rem}}
+@media (prefers-reduced-motion:no-preference){.ex,.check{transition:border-color .2s,background .2s}}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Upper / Lower Split</h1>
+    <p>4 lifting days, 6:00–7:00 am. Each exercise shows the muscles it works, three form cues, and a video link showing how to do it.</p>
+  </header>
+
+  <nav class="week" role="tablist" aria-label="Training days" id="week"></nav>
+
+  <section id="day" aria-live="polite"></section>
+
+  <section class="rules">
+    <h2>How to progress</h2>
+    <ul>
+      <li><strong>Weeks 1–2:</strong> use light weights and learn the movement. Watch the video before your first session.</li>
+      <li><strong>Add weight</strong> once you hit the top of the rep range on every set: +2.5 kg for upper body, +5 kg for legs.</li>
+      <li>End each set with 1–2 reps still in the tank. Bad form means the weight is too heavy.</li>
+      <li>Warm up 5–8 minutes, then do 2 light sets of the first exercise.</li>
+      <li>Write down the weight and reps of your top set so you know what to beat next time.</li>
+      <li>Week 8: deload. Same exercises, half the sets, lighter weight.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const DAYS = [
+  {key:"mon", short:"Mon", name:"Upper A", focus:"Chest, back, shoulders, arms — strength focus", color:"--plate-red", ex:[
+    {n:"Barbell bench press", s:"3 × 6–8", r:"2–3 min", p:["Chest"], sec:["Front shoulders","Triceps"],
+     c:["Shoulder blades squeezed together, feet flat","Lower the bar to mid-chest with elbows ~45°","Press up and slightly back over the shoulders"], q:"how to barbell bench press proper form"},
+    {n:"Barbell row", s:"3 × 6–8", r:"2–3 min", p:["Upper back","Lats"], sec:["Rear shoulders","Biceps"],
+     c:["Hinge forward to ~45°, back flat","Pull the bar to your lower ribs","Squeeze shoulder blades, lower with control"], q:"how to barbell bent over row proper form"},
+    {n:"Overhead press", s:"3 × 8–10", r:"2 min", p:["Shoulders"], sec:["Triceps","Upper chest","Core"],
+     c:["Bar on front shoulders, glutes and abs tight","Press straight up, move your head back slightly","Lock out with the bar over your mid-foot"], q:"how to standing overhead press barbell form"},
+    {n:"Lat pulldown", s:"3 × 8–12", r:"90 s", p:["Lats"], sec:["Biceps","Upper back"],
+     c:["Grip slightly wider than shoulders","Pull the bar to your upper chest, chest up","Don't swing your body back"], q:"how to lat pulldown proper form"},
+    {n:"Incline dumbbell curl", s:"2 × 10–12", r:"60 s", p:["Biceps"], sec:["Forearms"],
+     c:["Bench at ~45°, arms hanging straight down","Curl without moving your elbows forward","Lower slowly for a full stretch"], q:"how to incline dumbbell curl form"},
+    {n:"Triceps rope pushdown", s:"2 × 10–12", r:"60 s", p:["Triceps"], sec:[],
+     c:["Elbows pinned at your sides","Push down and spread the rope at the bottom","Only your forearms move"], q:"how to tricep rope pushdown form"}
+  ]},
+  {key:"tue", short:"Tue", name:"Lower A", focus:"Quads, glutes, hamstrings — squat focus", color:"--plate-blue", ex:[
+    {n:"Barbell back squat", s:"3 × 6–8", r:"2–3 min", p:["Quads","Glutes"], sec:["Hamstrings","Lower back","Core"],
+     c:["Bar on upper back, feet shoulder-width, toes slightly out","Sit down and back until thighs are at least parallel","Knees follow toes, chest up, drive up through mid-foot"], q:"how to barbell back squat proper form beginner"},
+    {n:"Romanian deadlift", s:"3 × 8–10", r:"2 min", p:["Hamstrings","Glutes"], sec:["Lower back"],
+     c:["Soft knees, push your hips back","Bar slides down close to your legs","Stop when you feel a hamstring stretch, back stays flat"], q:"how to romanian deadlift proper form"},
+    {n:"Leg press", s:"3 × 10–12", r:"90 s", p:["Quads"], sec:["Glutes","Hamstrings"],
+     c:["Feet shoulder-width in the middle of the platform","Lower until knees reach ~90°","Don't lock your knees at the top"], q:"how to leg press proper form"},
+    {n:"Lying leg curl", s:"2 × 10–12", r:"60 s", p:["Hamstrings"], sec:["Calves"],
+     c:["Pad just above your heels","Curl up fully, hips stay on the bench","Lower slowly"], q:"how to lying leg curl form"},
+    {n:"Standing calf raise", s:"3 × 12–15", r:"60 s", p:["Calves"], sec:[],
+     c:["Balls of feet on the edge of a step","Lower heels for a full stretch","Rise up high and pause 1 second"], q:"how to standing calf raise proper form"},
+    {n:"Plank", s:"3 × 30–45 s", r:"45 s", p:["Core / abs"], sec:["Shoulders","Glutes"],
+     c:["Elbows under shoulders","Straight line from head to heels","Squeeze glutes, don't let hips sag"], q:"how to plank proper form"}
+  ]},
+  {key:"wed", short:"Wed", rest:true},
+  {key:"thu", short:"Thu", name:"Upper B", focus:"Chest, back, shoulders, arms — volume focus", color:"--plate-yellow", ex:[
+    {n:"Incline dumbbell press", s:"3 × 8–10", r:"2 min", p:["Upper chest"], sec:["Front shoulders","Triceps"],
+     c:["Bench at 30°, shoulder blades pinned back","Lower dumbbells to the sides of your upper chest","Press up and slightly together"], q:"how to incline dumbbell press proper form"},
+    {n:"Pull-ups (assisted if needed)", s:"3 × 6–10", r:"2 min", p:["Lats"], sec:["Biceps","Upper back","Core"],
+     c:["Hang with arms straight, grip shoulder-width","Pull your chest toward the bar","Lower all the way down. Use the assist machine or a band to start"], q:"how to do assisted pull ups beginner"},
+    {n:"Seated cable row", s:"3 × 10–12", r:"90 s", p:["Mid back","Lats"], sec:["Biceps","Rear shoulders"],
+     c:["Sit tall, slight knee bend","Pull the handle to your stomach","Squeeze shoulder blades, don't lean back"], q:"how to seated cable row proper form"},
+    {n:"Dumbbell shoulder press", s:"3 × 8–10", r:"90 s", p:["Shoulders"], sec:["Triceps"],
+     c:["Sit with back support, dumbbells at ear level","Press up without banging them together","Lower to ear level with control"], q:"how to seated dumbbell shoulder press form"},
+    {n:"Lateral raise", s:"3 × 12–15", r:"60 s", p:["Side shoulders"], sec:["Traps"],
+     c:["Light weight, slight bend in elbows","Raise to shoulder height, leading with elbows","No swinging, lower slowly"], q:"how to dumbbell lateral raise proper form"},
+    {n:"Hammer curl", s:"2 × 10–12", r:"60 s", p:["Biceps","Forearms"], sec:[],
+     c:["Palms face each other the whole time","Elbows stay at your sides","Lower slowly"], q:"how to hammer curl form"},
+    {n:"Overhead triceps extension", s:"2 × 10–12", r:"60 s", p:["Triceps"], sec:[],
+     c:["One dumbbell held with both hands overhead","Lower behind your head, elbows point up","Extend fully, keep elbows narrow"], q:"how to overhead dumbbell tricep extension form"}
+  ]},
+  {key:"fri", short:"Fri", name:"Lower B", focus:"Glutes, hamstrings, back — deadlift focus", color:"--plate-green", ex:[
+    {n:"Conventional deadlift", s:"3 × 5", r:"3 min", p:["Glutes","Hamstrings","Lower back"], sec:["Quads","Traps","Forearms"],
+     c:["Bar over mid-foot, shins close to the bar","Flat back, chest up, take the slack out of the bar","Push the floor away, stand tall, lower the bar the same path"], q:"how to deadlift proper form beginner"},
+    {n:"Bulgarian split squat", s:"3 × 8–10 / leg", r:"90 s", p:["Quads","Glutes"], sec:["Hamstrings","Balance"],
+     c:["Back foot on a bench, front foot about 2 feet ahead","Drop the back knee straight down","Push through the front heel. Start with bodyweight"], q:"how to bulgarian split squat proper form"},
+    {n:"Hip thrust", s:"3 × 8–10", r:"90 s", p:["Glutes"], sec:["Hamstrings"],
+     c:["Upper back on a bench, bar on hips (use a pad)","Drive hips up until body is flat like a table","Chin tucked, squeeze glutes at the top"], q:"how to barbell hip thrust proper form"},
+    {n:"Leg extension", s:"2 × 12–15", r:"60 s", p:["Quads"], sec:[],
+     c:["Knees line up with the machine's pivot","Straighten legs fully and pause","Lower slowly"], q:"how to leg extension machine form"},
+    {n:"Seated calf raise", s:"3 × 12–15", r:"60 s", p:["Calves (soleus)"], sec:[],
+     c:["Pad on lower thighs, balls of feet on the platform","Full stretch at the bottom","Pause at the top"], q:"how to seated calf raise form"},
+    {n:"Hanging knee raise", s:"3 × 10–12", r:"45 s", p:["Lower abs"], sec:["Hip flexors","Grip"],
+     c:["Hang from the bar, no swinging","Bring knees up toward your chest","Lower slowly. Use the captain's chair if grip fails"], q:"how to hanging knee raise form"}
+  ]},
+  {key:"sat", short:"Sat", name:"Arms & Shoulders", focus:"Optional, 30 min — skip if you feel tired", color:"--plate-gray", ex:[
+    {n:"Lateral raise", s:"3 × 15", r:"60 s", p:["Side shoulders"], sec:["Traps"],
+     c:["Light weight, slight elbow bend","Raise to shoulder height","Lower slowly"], q:"how to dumbbell lateral raise proper form"},
+    {n:"EZ-bar curl", s:"3 × 10–12", r:"60 s", p:["Biceps"], sec:["Forearms"],
+     c:["Elbows at your sides","Curl up without swinging","Lower all the way"], q:"how to ez bar curl proper form"},
+    {n:"Close-grip bench press or dips", s:"3 × 8–10", r:"90 s", p:["Triceps"], sec:["Chest","Front shoulders"],
+     c:["Hands shoulder-width on the bar","Elbows stay close to your body","For dips, use the assisted machine to start"], q:"how to close grip bench press form"},
+    {n:"Rear-delt fly", s:"3 × 15", r:"60 s", p:["Rear shoulders"], sec:["Upper back"],
+     c:["Bend forward or use the reverse pec-deck","Arms out wide with a slight bend","Squeeze, don't use momentum"], q:"how to rear delt fly proper form"}
+  ]},
+  {key:"sun", short:"Sun", rest:true}
+];
+
+const yt = q => "https://www.youtube.com/results?search_query=" + encodeURIComponent(q);
+const playIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+let done = {};
+try { done = JSON.parse(localStorage.getItem("gym-done") || "{}"); } catch(e) {}
+const save = () => { try { localStorage.setItem("gym-done", JSON.stringify(done)); } catch(e) {} };
+
+const weekEl = document.getElementById("week");
+const dayEl = document.getElementById("day");
+
+function renderWeek(active){
+  weekEl.innerHTML = DAYS.map(d => d.rest
+    ? `<div class="wk rest"><small>${d.short}</small><b>Rest</b></div>`
+    : `<button class="wk" role="tab" style="--c:var(${d.color})" aria-selected="${d.key===active}" data-key="${d.key}"><small>${d.short}</small><b>${d.name.replace(" & Shoulders","")}</b></button>`
+  ).join("");
+}
+
+function renderDay(key){
+  const d = DAYS.find(x => x.key === key);
+  const doneCount = d.ex.filter((_,i) => done[key+i]).length;
+  dayEl.innerHTML = `
+    <div style="--c:var(${d.color});display:grid;gap:16px">
+      <div class="dayhead">
+        <div class="plate" aria-hidden="true"></div>
+        <div><h2>${d.name}</h2><p>${d.focus}</p></div>
+        <span class="progress">${doneCount}/${d.ex.length} done</span>
+      </div>
+      <div class="legend"><span class="chip primary">Main muscle</span><span class="chip">Also works</span></div>
+      <ol class="list">
+        ${d.ex.map((e,i) => `
+          <li class="ex ${done[key+i] ? "is-done" : ""}">
+            <div class="ex-top">
+              <div class="ex-title">
+                <h3>${e.n}</h3>
+                <div class="meta"><strong>${e.s}</strong> · rest ${e.r}</div>
+              </div>
+              <button class="check" aria-pressed="${!!done[key+i]}" aria-label="Mark ${e.n} done" data-id="${key+i}">✓</button>
+            </div>
+            <div class="muscles">
+              ${e.p.map(m => `<span class="chip primary">${m}</span>`).join("")}
+              ${e.sec.map(m => `<span class="chip">${m}</span>`).join("")}
+            </div>
+            <div>
+              <div class="label">Form cues</div>
+              <ul class="cues">${e.c.map(x => `<li>${x}</li>`).join("")}</ul>
+            </div>
+            <a class="how" href="${yt(e.q)}" target="_blank" rel="noopener">${playIcon}Watch how to do it</a>
+          </li>`).join("")}
+      </ol>
+      ${doneCount ? `<button class="reset" data-reset="${key}">Clear checkmarks for ${d.name}</button>` : ""}
+    </div>`;
+}
+
+function show(key){
+  renderWeek(key); renderDay(key);
+  try { history.replaceState(null, "", "#" + key); } catch(e) {}
+}
+
+weekEl.addEventListener("click", e => {
+  const b = e.target.closest("button[data-key]"); if (b) show(b.dataset.key);
+});
+dayEl.addEventListener("click", e => {
+  const c = e.target.closest(".check");
+  if (c){ const id = c.dataset.id; done[id] = !done[id]; save(); renderDay(current()); return; }
+  const r = e.target.closest("[data-reset]");
+  if (r){ Object.keys(done).forEach(k => { if (k.startsWith(r.dataset.reset)) delete done[k]; }); save(); renderDay(r.dataset.reset); }
+});
+const current = () => weekEl.querySelector('[aria-selected="true"]')?.dataset.key;
+
+// Open on today's workout; on rest days, show the next one.
+(function init(){
+  const hash = location.hash.slice(1);
+  if (DAYS.some(d => d.key === hash && !d.rest)) return show(hash);
+  const order = ["sun","mon","tue","wed","thu","fri","sat"];
+  let i = new Date().getDay();
+  for (let n = 0; n < 7; n++){
+    const d = DAYS.find(x => x.key === order[(i + n) % 7]);
+    if (!d.rest) return show(d.key);
+  }
+})();
+</script>
+</body>
+</html>
